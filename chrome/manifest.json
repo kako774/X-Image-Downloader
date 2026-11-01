@@ -1,10 +1,15 @@
 {
   "manifest_version": 3,
   "name": "X Image Downloader",
-  "version": "1.1.0",
-  "description": "X(Twitter)の画像を原寸で保存します。保存先のフォルダ名・ファイル名はテンプレートで自由に設定できます。",
-  "permissions": ["downloads", "storage"],
-  "host_permissions": ["https://pbs.twimg.com/*"],
+  "version": "1.2.0",
+  "description": "X(Twitter)の画像・動画を原寸で保存します。保存先のフォルダ名・ファイル名はテンプレートで自由に設定できます。",
+  "permissions": [
+    "downloads",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://pbs.twimg.com/*"
+  ],
   "background": {
     "service_worker": "background.js"
   },
@@ -13,9 +18,28 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://x.com/*", "https://twitter.com/*"],
-      "js": ["common.js", "content.js"],
-      "css": ["content.css"],
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": [
+        "hook.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": [
+        "common.js",
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
       "run_at": "document_idle"
     }
   ],

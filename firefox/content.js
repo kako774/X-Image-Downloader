@@ -22,6 +22,20 @@ function makeIcon() {
 let cfg = { ...XID.DEFAULTS };
 let savedSet = new Set();
 
+// hook.js が拾った動画・GIFの情報(ツイートID -> [{kind, variants}])
+const videoMap = new Map();
+const VIDEO_MAP_MAX = 1000;
+
+window.addEventListener("message", (ev) => {
+  if (ev.source !== window) return;
+  const d = ev.data;
+  if (!d || d.source !== "xid-hook" || d.type !== "media") return;
+  if (typeof d.tweetId !== "string" || !Array.isArray(d.items)) return;
+  videoMap.delete(d.tweetId);
+  videoMap.set(d.tweetId, d.items);
+  if (videoMap.size > VIDEO_MAP_MAX) videoMap.delete(videoMap.keys().next().value);
+});
+
 // 画像URLから「サイズ指定を除いたURL」と拡張子を取り出す
 function parseImage(src) {
   try {
@@ -58,7 +72,8 @@ function getTweetInfo(article) {
     }
   });
   const textEl = article.querySelector('[data-testid="tweetText"]');
-  return { userId: m[1], tweetId: m[2], images, text: textEl ? textEl.innerText : "" };
+  const hasVideo = !!article.querySelector('video, [data-testid="videoPlayer"]');
+  return { userId: m[1], tweetId: m[2], images, hasVideo, text: textEl ? textEl.innerText : "" };
 }
 
 // ---- ページ上の通知 ----
@@ -93,7 +108,7 @@ function refreshMarks() {
       btn.title = "保存済み(もう一度押すと再保存)";
     } else {
       btn.removeAttribute("data-xid-saved");
-      btn.title = "画像を保存";
+      btn.title = "画像・動画を保存";
     }
   });
 }
@@ -111,7 +126,7 @@ async function loadState() {
 
 function addButton(article) {
   if (article.getAttribute(DONE_ATTR)) return;
-  if (!article.querySelector('[data-testid="tweetPhoto"]')) return;
+  if (!article.querySelector('[data-testid="tweetPhoto"], [data-testid="videoPlayer"], video')) return;
 
   const groups = article.querySelectorAll('[role="group"]');
   const bar = groups[groups.length - 1];
@@ -122,28 +137,57 @@ function addButton(article) {
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = BTN_CLASS;
-  btn.title = "画像を保存";
+  btn.title = "画像・動画を保存";
   btn.appendChild(makeIcon());
   btn.addEventListener("click", async (ev) => {
     ev.preventDefault();
     ev.stopPropagation();
     const info = getTweetInfo(article);
-    if (!info || info.images.length === 0) {
+    if (!info) {
       setState(btn, "ng");
-      toast("画像が見つかりません", false);
+      toast("ツイートの情報を読み取れませんでした", false);
+      return;
+    }
+    const videos = videoMap.get(info.tweetId) || [];
+    const sendVideos = cfg.saveVideos ? videos : [];
+    if (info.images.length === 0 && sendVideos.length === 0) {
+      setState(btn, "ng");
+      if (info.hasVideo && !cfg.saveVideos) {
+        toast("動画の保存がオフになっています(設定画面でオンにできます)", false);
+      } else if (info.hasVideo) {
+        toast("動画の情報がまだ取得できていません。\nページを再読み込みしてから、もう一度押してください\n(引用ツイートの中の動画には対応していません)", false);
+      } else {
+        toast("画像が見つかりません", false);
+      }
       return;
     }
     try {
-      const res = await xapi.runtime.sendMessage({ type: "download-images", ...info });
-      if (res && res.ok === res.total) {
+      const res = await xapi.runtime.sendMessage({
+        type: "download-images",
+        userId: info.userId,
+        tweetId: info.tweetId,
+        text: info.text,
+        images: info.images,
+        videos: sendVideos,
+      });
+      if (res && res.total > 0 && res.ok === res.total && res.errors.length === 0) {
         setState(btn, "ok");
         savedSet.add(info.tweetId);
         refreshMarks();
-        if (cfg.notify) toast(`${res.ok}枚を保存しました\n${res.firstPath}`, true);
+        let head;
+        if (res.okVideos) {
+          const parts = [];
+          if (res.okImages) parts.push(`画像${res.okImages}枚`);
+          parts.push(`動画${res.okVideos}本`);
+          head = `${parts.join("・")}の保存を開始しました`;
+        } else {
+          head = `${res.okImages}枚を保存しました`;
+        }
+        if (cfg.notify) toast(`${head}\n${res.firstPath}`, true);
       } else {
         setState(btn, "ng");
         const why = res && res.errors && res.errors[0] ? `\n${res.errors[0]}` : "";
-        toast(`保存に失敗しました(${res ? res.ok : 0}/${info.images.length}枚)${why}`, false);
+        toast(`保存に失敗しました(${res ? res.ok : 0}/${res ? res.total : 0})${why}`, false);
       }
     } catch (e) {
       setState(btn, "ng");

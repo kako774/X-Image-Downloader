@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "X Image Downloader",
-  "version": "1.1.0",
-  "description": "X(Twitter)の画像を原寸で保存します。保存先のフォルダ名・ファイル名はテンプレートで自由に設定できます。",
+  "version": "1.2.0",
+  "description": "X(Twitter)の画像・動画を原寸で保存します。保存先のフォルダ名・ファイル名はテンプレートで自由に設定できます。",
   "permissions": [
     "downloads",
     "storage"
@@ -22,6 +22,17 @@
     "default_title": "X Image Downloader の設定"
   },
   "content_scripts": [
+    {
+      "matches": [
+        "https://x.com/*",
+        "https://twitter.com/*"
+      ],
+      "js": [
+        "hook.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
     {
       "matches": [
         "https://x.com/*",

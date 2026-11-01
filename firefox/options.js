@@ -20,6 +20,8 @@ function read() {
     textLength: Number($("textLength").value) || XID.DEFAULTS.textLength,
     imageSize: $("imageSize").value,
     conflict: $("conflict").value,
+    saveVideos: $("saveVideos").checked,
+    videoQuality: $("videoQuality").value,
     saveAs: $("saveAs").checked,
     notify: $("notify").checked,
     markSaved: $("markSaved").checked,
@@ -35,6 +37,8 @@ function write(s) {
   $("textLength").value = s.textLength;
   $("imageSize").value = s.imageSize;
   $("conflict").value = s.conflict;
+  $("saveVideos").checked = s.saveVideos;
+  $("videoQuality").value = s.videoQuality;
   $("saveAs").checked = s.saveAs;
   $("notify").checked = s.notify;
   $("markSaved").checked = s.markSaved;
@@ -99,6 +103,14 @@ async function init() {
     o.value = v;
     o.textContent = label;
     $("imageSize").appendChild(o);
+  });
+
+  // 動画の画質の選択肢
+  XID.VIDEO_QUALITIES.forEach(([v, label]) => {
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = label;
+    $("videoQuality").appendChild(o);
   });
 
   // トークンのボタンと一覧表

@@ -15,6 +15,8 @@ var XID = (() => {
     imageSize: "orig", // orig / 4096x4096 / large / medium / small
     conflict: "uniquify", // uniquify(連番を付ける) / overwrite(上書き) / prompt(確認)
     saveAs: false, // 毎回保存先を聞く
+    saveVideos: true, // 動画・GIFも保存する
+    videoQuality: "best", // best(最高画質) / lowest(最小サイズ)
     notify: true, // ページ上に保存結果を表示する
     markSaved: true, // 保存済みツイートのボタンを緑にする
   };
@@ -25,6 +27,11 @@ var XID = (() => {
     ["large", "大 (large)"],
     ["medium", "中 (medium)"],
     ["small", "小 (small)"],
+  ];
+
+  const VIDEO_QUALITIES = [
+    ["best", "最高画質"],
+    ["lowest", "最小サイズ"],
   ];
 
   // [トークン, 説明, サンプル値]
@@ -136,11 +143,36 @@ var XID = (() => {
     m.textLength = clampInt(m.textLength, 1, 100, 30);
     if (!IMAGE_SIZES.some(([v]) => v === m.imageSize)) m.imageSize = "orig";
     if (!["uniquify", "overwrite", "prompt"].includes(m.conflict)) m.conflict = "uniquify";
+    if (!VIDEO_QUALITIES.some(([v]) => v === m.videoQuality)) m.videoQuality = "best";
+    m.saveVideos = !!m.saveVideos;
     m.saveAs = !!m.saveAs;
     m.notify = !!m.notify;
     m.markSaved = !!m.markSaved;
     return m;
   }
 
-  return { DEFAULTS, IMAGE_SIZES, TOKENS, pad, dateFromTweetId, makeText, buildPath, getSettings };
+  // 動画のURL候補(variants)から、保存するMP4を1つ選ぶ。HLS(m3u8)は使わない。
+  function pickVideoVariant(variants, quality) {
+    const mp4 = (Array.isArray(variants) ? variants : []).filter(
+      (v) => v && typeof v.url === "string" && v.content_type === "video/mp4"
+    );
+    if (!mp4.length) return null;
+    mp4.sort((a, b) => (Number(a.bitrate) || 0) - (Number(b.bitrate) || 0));
+    return quality === "lowest" ? mp4[0] : mp4[mp4.length - 1];
+  }
+
+  // ダウンロードしてよいURLか(Xの画像・動画の配信元だけ)
+  function isAllowedUrl(url, host) {
+    try {
+      const u = new URL(url);
+      return u.protocol === "https:" && u.hostname === host;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  return {
+    DEFAULTS, IMAGE_SIZES, VIDEO_QUALITIES, TOKENS,
+    pad, dateFromTweetId, makeText, buildPath, getSettings, pickVideoVariant, isAllowedUrl,
+  };
 })();
