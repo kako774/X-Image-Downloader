@@ -1,0 +1,69 @@
+.xid-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-left: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: rgb(113, 118, 123);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.xid-btn:hover {
+  background: rgba(29, 155, 240, 0.1);
+  color: rgb(29, 155, 240);
+}
+
+/* 保存済み */
+.xid-btn[data-xid-saved="1"] {
+  color: rgb(0, 186, 124);
+}
+
+.xid-btn[data-xid-saved="1"]:hover {
+  background: rgba(0, 186, 124, 0.1);
+  color: rgb(0, 186, 124);
+}
+
+.xid-btn[data-xid-state="ok"] {
+  color: rgb(0, 186, 124);
+}
+
+.xid-btn[data-xid-state="ng"] {
+  color: rgb(249, 24, 128);
+}
+
+/* 保存結果の通知 */
+#xid-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  transform: translate(-50%, 20px);
+  max-width: min(90vw, 520px);
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: rgba(15, 20, 25, 0.95);
+  color: #fff;
+  font: 13px/1.5 "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  white-space: pre-wrap;
+  word-break: break-all;
+  border-left: 4px solid rgb(0, 186, 124);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s;
+  z-index: 2147483647;
+}
+
+#xid-toast[data-state="ng"] {
+  border-left-color: rgb(249, 24, 128);
+}
+
+#xid-toast.show {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}

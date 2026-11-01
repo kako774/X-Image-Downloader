@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>X Image Downloader 設定</title>
+  <style>
+    :root { color-scheme: light dark; --accent: #1d9bf0; --line: rgba(128,128,128,.35); --muted: rgba(128,128,128,1); }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+      font-size: 14px; line-height: 1.6;
+      max-width: 760px; margin: 0 auto; padding: 24px 20px 80px;
+    }
+    h1 { font-size: 20px; margin: 0 0 4px; }
+    .lead { color: var(--muted); margin: 0 0 20px; font-size: 13px; }
+    section { border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; margin: 0 0 16px; }
+    h2 { font-size: 15px; margin: 0 0 12px; }
+    label.row { display: block; margin: 10px 0 4px; font-weight: 600; font-size: 13px; }
+    .inline { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+    .inline label { font-weight: normal; display: inline-flex; align-items: center; gap: 6px; }
+    input[type="text"], input[type="number"], select {
+      font: inherit; padding: 6px 8px; border: 1px solid var(--line); border-radius: 6px;
+      background: transparent; color: inherit;
+    }
+    input[type="text"] { width: 100%; font-family: Consolas, "Noto Sans Mono CJK JP", monospace; }
+    input[type="number"] { width: 80px; }
+    input:focus, select:focus { outline: 2px solid var(--accent); outline-offset: 0; }
+    .hint { color: var(--muted); font-size: 12px; margin: 4px 0 0; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 2px; }
+    .chip {
+      font: 12px Consolas, monospace; padding: 3px 9px; border-radius: 999px; cursor: pointer;
+      border: 1px solid var(--line); background: transparent; color: inherit;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+    table.tokens { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 12px; }
+    table.tokens td { padding: 3px 8px; border-top: 1px solid var(--line); vertical-align: top; }
+    table.tokens td:first-child { font-family: Consolas, monospace; white-space: nowrap; }
+    table.tokens td:last-child { color: var(--muted); }
+    .preview { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: rgba(128,128,128,.12);
+      font-family: Consolas, "Noto Sans Mono CJK JP", monospace; font-size: 12.5px; word-break: break-all; }
+    .preview div + div { margin-top: 4px; }
+    .preview .dim { color: var(--muted); }
+    .warn { color: #e0245e; font-size: 12px; margin-top: 8px; }
+    .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 20px; display: flex; gap: 12px;
+      align-items: center; justify-content: flex-end; background: Canvas; border-top: 1px solid var(--line); }
+    #saved { color: #0a8f5a; font-size: 13px; min-width: 7em; text-align: right; }
+    button.btn { font: inherit; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+      border: 1px solid var(--line); background: transparent; color: inherit; }
+    button.btn:hover { border-color: var(--accent); }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+    @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <h1>X Image Downloader 設定</h1>
+  <p class="lead">変更は自動で保存されます。保存先はブラウザのダウンロードフォルダの中です。</p>
+
+  <section>
+    <h2>保存先とファイル名</h2>
+
+    <label class="row" for="folderTemplate">フォルダ名のテンプレート</label>
+    <input type="text" id="folderTemplate" spellcheck="false" autocomplete="off">
+    <p class="hint">「/」でフォルダを区切れます。空にするとダウンロードフォルダ直下に保存します。</p>
+
+    <label class="row" for="fileTemplate">ファイル名のテンプレート(拡張子は自動で付きます)</label>
+    <input type="text" id="fileTemplate" spellcheck="false" autocomplete="off">
+
+    <div class="chips" id="chips"></div>
+    <p class="hint">下のボタンを押すと、最後に選んでいた入力欄のカーソル位置に入ります。</p>
+
+    <div class="preview" id="preview"></div>
+    <div class="warn" id="warn"></div>
+
+    <details style="margin-top:10px">
+      <summary style="cursor:pointer;font-size:13px">使える項目の一覧</summary>
+      <table class="tokens" id="tokenTable"></table>
+    </details>
+  </section>
+
+  <section>
+    <h2>日付と連番</h2>
+    <label class="row">{YYYY}{MM}{DD}{hh}{mm}{ss} の基準</label>
+    <div class="inline">
+      <label><input type="radio" name="dateBasis" value="tweet"> ツイートの投稿日時</label>
+      <label><input type="radio" name="dateBasis" value="download"> ダウンロードした日時</label>
+    </div>
+
+    <div class="grid2">
+      <div>
+        <label class="row" for="indexStart">連番の開始番号</label>
+        <select id="indexStart">
+          <option value="0">0 から</option>
+          <option value="1">1 から</option>
+        </select>
+      </div>
+      <div>
+        <label class="row" for="indexPad">連番の桁数</label>
+        <select id="indexPad">
+          <option value="1">1桁 (0, 1, 2…)</option>
+          <option value="2">2桁 (00, 01, 02…)</option>
+          <option value="3">3桁 (000, 001, 002…)</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="row" for="textLength">{text}(ツイート本文)の最大文字数</label>
+    <input type="number" id="textLength" min="1" max="100">
+  </section>
+
+  <section>
+    <h2>ダウンロード</h2>
+    <div class="grid2">
+      <div>
+        <label class="row" for="imageSize">画像サイズ</label>
+        <select id="imageSize"></select>
+      </div>
+      <div>
+        <label class="row" for="conflict">同じ名前のファイルがあるとき</label>
+        <select id="conflict">
+          <option value="uniquify">連番を付けて残す (name (1).jpg)</option>
+          <option value="overwrite">上書きする</option>
+          <option value="prompt">毎回確認する</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <label><input type="checkbox" id="saveAs"> 保存のたびに保存先を選ぶ(複数枚だと枚数分の確認が出ます)</label>
+    </div>
+  </section>
+
+  <section>
+    <h2>ページ上の表示</h2>
+    <div><label><input type="checkbox" id="notify"> 保存したら画面の下に結果を表示する</label></div>
+    <div><label><input type="checkbox" id="markSaved"> 保存済みのツイートは、ボタンを緑にする</label></div>
+    <div style="margin-top:10px">
+      <button class="btn" id="clearHistory" type="button">保存済みの記録を消す</button>
+      <span class="hint" id="historyCount"></span>
+    </div>
+  </section>
+
+  <div class="bar">
+    <span id="saved"></span>
+    <button class="btn" id="reset" type="button">初期値に戻す</button>
+  </div>
+
+  <script src="common.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>
