@@ -8,6 +8,7 @@ var XID = (() => {
   const DEFAULTS = {
     folderTemplate: "Twitter/{YYYY}-{MM}",
     fileTemplate: "{user}-{id}-{index}",
+    folderMode: "folder", // folder(フォルダに分ける) / prefix(フォルダは作らず、フォルダ名をファイル名の前に付ける)
     dateBasis: "tweet", // "tweet" = ツイート投稿日 / "download" = ダウンロード日
     indexStart: 0, // 連番の開始番号 (0 or 1)
     indexPad: 1, // 連番の桁数 (1なら 0,1,2 / 2なら 00,01,02)
@@ -29,6 +30,11 @@ var XID = (() => {
     ["small", "小 (small)"],
   ];
 
+  const FOLDER_MODES = [
+    ["folder", "フォルダに分けて保存する"],
+    ["prefix", "フォルダは作らず、フォルダ名をファイル名の前に付ける"],
+  ];
+
   const VIDEO_QUALITIES = [
     ["best", "最高画質"],
     ["lowest", "最小サイズ"],
@@ -47,6 +53,11 @@ var XID = (() => {
     ["{ss}", "秒 (2桁)", "41"],
     ["{text}", "ツイート本文の先頭 (URLは除去)", "サンプルのツイート本文"],
   ];
+
+  // フォルダに分けて保存するか(false なら、フォルダ名をファイル名の前に付ける)
+  function useFolders(settings) {
+    return settings.folderMode !== "prefix";
+  }
 
   function pad(n, w = 2) {
     return String(n).padStart(w, "0");
@@ -116,9 +127,19 @@ var XID = (() => {
     const file =
       cleanSegment(fill(String(settings.fileTemplate), vars, unknown)) ||
       `${info.userId}-${info.tweetId}-${vars.index}`;
-    const name = `${file}.${info.ext}`;
+    const flat = !useFolders(settings);
+    let path;
+    if (flat) {
+      // フォルダは作らず、フォルダ名を「_」でつないでファイル名の前に付ける
+      const head = folder ? folder.split("/").join("_") + "_" : "";
+      path = `${cleanSegment(head + file)}.${info.ext}`;
+    } else {
+      const name = `${file}.${info.ext}`;
+      path = folder ? `${folder}/${name}` : name;
+    }
     return {
-      path: folder ? `${folder}/${name}` : name,
+      path,
+      flat,
       unknown: [...unknown],
       hasIndex: /\{index\}/.test(String(settings.folderTemplate) + String(settings.fileTemplate)),
     };
@@ -137,6 +158,7 @@ var XID = (() => {
     const m = { ...DEFAULTS, ...s };
     if (typeof m.folderTemplate !== "string") m.folderTemplate = DEFAULTS.folderTemplate;
     if (typeof m.fileTemplate !== "string" || !m.fileTemplate.trim()) m.fileTemplate = DEFAULTS.fileTemplate;
+    if (!FOLDER_MODES.some(([v]) => v === m.folderMode)) m.folderMode = "folder";
     m.dateBasis = m.dateBasis === "download" ? "download" : "tweet";
     m.indexStart = Number(m.indexStart) === 1 ? 1 : 0;
     m.indexPad = clampInt(m.indexPad, 1, 6, 1);
@@ -172,7 +194,7 @@ var XID = (() => {
   }
 
   return {
-    DEFAULTS, IMAGE_SIZES, VIDEO_QUALITIES, TOKENS,
-    pad, dateFromTweetId, makeText, buildPath, getSettings, pickVideoVariant, isAllowedUrl,
+    DEFAULTS, IMAGE_SIZES, VIDEO_QUALITIES, FOLDER_MODES, TOKENS,
+    useFolders, pad, dateFromTweetId, makeText, buildPath, getSettings, pickVideoVariant, isAllowedUrl,
   };
 })();

@@ -42,6 +42,9 @@
     .preview div + div { margin-top: 4px; }
     .preview .dim { color: var(--muted); }
     .warn { color: #e0245e; font-size: 12px; margin-top: 8px; }
+    .callout { margin: 8px 0 4px; padding: 10px 12px; border-radius: 8px; font-size: 12.5px; line-height: 1.7;
+      border: 1px solid #e0a100; background: rgba(224,161,0,.12); }
+    .callout b { display: block; margin-bottom: 2px; }
     .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 20px; display: flex; gap: 12px;
       align-items: center; justify-content: flex-end; background: Canvas; border-top: 1px solid var(--line); }
     #saved { color: #0a8f5a; font-size: 13px; min-width: 7em; text-align: right; }
@@ -67,7 +70,15 @@
     <input type="text" id="fileTemplate" spellcheck="false" autocomplete="off">
 
     <div class="chips" id="chips"></div>
-    <p class="hint">下のボタンを押すと、最後に選んでいた入力欄のカーソル位置に入ります。</p>
+    <p class="hint">上のボタンを押すと、最後に選んでいた入力欄のカーソル位置に入ります。</p>
+
+    <label class="row" for="folderMode">フォルダの使い方</label>
+    <select id="folderMode"></select>
+    <div class="callout">
+      <b>⚠ Androidでは、保存先のフォルダを指定できません</b>
+      Androidのブラウザ(Vivaldiなど)では、上のフォルダ名のテンプレートは使われず、ダウンロードフォルダの直下に保存されます。
+      フォルダの代わりに、フォルダ名をファイル名の前に付けたいときは、上の選択肢を「フォルダは作らず、フォルダ名をファイル名の前に付ける」にしてください(例: Twitter_2026-11_username-…-0.jpg)。
+    </div>
 
     <div class="preview" id="preview"></div>
     <div class="warn" id="warn"></div>

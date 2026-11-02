@@ -14,6 +14,7 @@ function read() {
   return {
     folderTemplate: $("folderTemplate").value,
     fileTemplate: $("fileTemplate").value,
+    folderMode: $("folderMode").value,
     dateBasis: document.querySelector('input[name="dateBasis"]:checked').value,
     indexStart: Number($("indexStart").value),
     indexPad: Number($("indexPad").value),
@@ -31,6 +32,7 @@ function read() {
 function write(s) {
   $("folderTemplate").value = s.folderTemplate;
   $("fileTemplate").value = s.fileTemplate;
+  $("folderMode").value = s.folderMode;
   document.querySelectorAll('input[name="dateBasis"]').forEach((r) => (r.checked = r.value === s.dateBasis));
   $("indexStart").value = String(s.indexStart);
   $("indexPad").value = String(Math.min(3, s.indexPad));
@@ -64,7 +66,7 @@ function renderPreview() {
   pv.appendChild(head);
   results.forEach((r) => {
     const row = document.createElement("div");
-    row.textContent = "ダウンロード/" + r.path.replace(/\//g, "\\");
+    row.textContent = "ダウンロード/" + (r.flat ? r.path : r.path.replace(/\//g, "\\"));
     pv.appendChild(row);
   });
 
@@ -97,6 +99,14 @@ async function updateHistoryCount() {
 
 // ---- 初期化 ----
 async function init() {
+  // フォルダの使い方の選択肢
+  XID.FOLDER_MODES.forEach(([v, label]) => {
+    const o = document.createElement("option");
+    o.value = v;
+    o.textContent = label;
+    $("folderMode").appendChild(o);
+  });
+
   // 画像サイズの選択肢
   XID.IMAGE_SIZES.forEach(([v, label]) => {
     const o = document.createElement("option");
