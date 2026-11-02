@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>X Image Downloader 設定</title>
   <style>
-    :root { color-scheme: light dark; --accent: #1d9bf0; --line: rgba(128,128,128,.35); --muted: rgba(128,128,128,1); }
+    :root { color-scheme: light; --bg: #fff; --fg: #0f1419; --accent: #1d9bf0; --line: rgba(128,128,128,.35); --muted: rgba(128,128,128,1); }
     * { box-sizing: border-box; }
     body {
       font-family: "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
@@ -46,13 +46,15 @@
       border: 1px solid #e0a100; background: rgba(224,161,0,.12); }
     .callout b { display: block; margin-bottom: 2px; }
     .bar { position: fixed; left: 0; right: 0; bottom: 0; padding: 10px 20px; display: flex; gap: 12px;
-      align-items: center; justify-content: flex-end; background: Canvas; border-top: 1px solid var(--line); }
+      align-items: center; justify-content: flex-end; background: #fff; border-top: 1px solid var(--line); }
     #saved { color: #0a8f5a; font-size: 13px; min-width: 7em; text-align: right; }
     button.btn { font: inherit; padding: 6px 14px; border-radius: 6px; cursor: pointer;
       border: 1px solid var(--line); background: transparent; color: inherit; }
     button.btn:hover { border-color: var(--accent); }
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
     @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } }
+      html, body { background: #fff; color: #0f1419; }
+    select, input, option { background-color: #fff; color: #0f1419; }
   </style>
 </head>
 <body>
