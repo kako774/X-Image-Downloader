@@ -41,9 +41,10 @@
 #xid-toast {
   position: fixed;
   left: 50%;
-  bottom: 28px;
+  bottom: 72px; /* スマホの下のバーに重ならない高さ */
   transform: translate(-50%, 20px);
-  max-width: min(90vw, 520px);
+  width: max-content; /* left:50% のままだと幅が画面の半分になり、文字が折り返されてしまう */
+  max-width: min(calc(100vw - 32px), 520px);
   padding: 10px 16px;
   border-radius: 8px;
   background: rgba(15, 20, 25, 0.95);

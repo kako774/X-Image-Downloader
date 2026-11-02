@@ -19,6 +19,7 @@ var XID = (() => {
     saveVideos: true, // 動画・GIFも保存する
     videoQuality: "best", // best(最高画質) / lowest(最小サイズ)
     notify: true, // ページ上に保存結果を表示する
+    toastPath: false, // 通知に保存先のパスも表示する
     markSaved: true, // 保存済みツイートのボタンを緑にする
   };
 
@@ -169,6 +170,7 @@ var XID = (() => {
     m.saveVideos = !!m.saveVideos;
     m.saveAs = !!m.saveAs;
     m.notify = !!m.notify;
+    m.toastPath = !!m.toastPath;
     m.markSaved = !!m.markSaved;
     return m;
   }

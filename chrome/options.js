@@ -25,6 +25,7 @@ function read() {
     videoQuality: $("videoQuality").value,
     saveAs: $("saveAs").checked,
     notify: $("notify").checked,
+    toastPath: $("toastPath").checked,
     markSaved: $("markSaved").checked,
   };
 }
@@ -43,6 +44,7 @@ function write(s) {
   $("videoQuality").value = s.videoQuality;
   $("saveAs").checked = s.saveAs;
   $("notify").checked = s.notify;
+  $("toastPath").checked = s.toastPath;
   $("markSaved").checked = s.markSaved;
 }
 

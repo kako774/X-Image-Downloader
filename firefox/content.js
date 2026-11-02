@@ -114,6 +114,36 @@ function toast(msg, ok) {
   toastTimer = setTimeout(() => t.classList.remove("show"), 3000);
 }
 
+// 保存が終わるまで見守って、終わったらお知らせを出す(失敗したときも出す)
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function watchDownloads(ids, what, pathLine) {
+  if (!ids.length) return;
+  const limit = Date.now() + 10 * 60 * 1000;
+  let misses = 0;
+  while (Date.now() < limit) {
+    await sleep(700);
+    let res;
+    try {
+      res = await xapi.runtime.sendMessage({ type: "check-downloads", ids });
+    } catch (e) {
+      return; // 拡張機能が更新されたなど
+    }
+    if (!res || !Array.isArray(res.items)) {
+      if (++misses > 3) return;
+      continue;
+    }
+    const bad = res.items.find((d) => d.state === "interrupted");
+    if (bad) {
+      toast(`${what}の保存に失敗しました${bad.error ? `(${bad.error})` : ""}`, false);
+      return;
+    }
+    if (res.items.length === ids.length && res.items.every((d) => d.state === "complete")) {
+      toast(`${what}の保存が完了しました${pathLine}`, true);
+      return;
+    }
+  }
+}
+
 function setState(btn, state) {
   btn.setAttribute("data-xid-state", state);
   setTimeout(() => btn.removeAttribute("data-xid-state"), 2000);
@@ -196,16 +226,15 @@ function addButton(article) {
         setState(btn, "ok");
         savedSet.add(info.tweetId);
         refreshMarks();
-        let head;
-        if (res.okVideos) {
-          const parts = [];
-          if (res.okImages) parts.push(`画像${res.okImages}枚`);
-          parts.push(`動画${res.okVideos}本`);
-          head = `${parts.join("・")}の保存を開始しました`;
-        } else {
-          head = `${res.okImages}枚を保存しました`;
+        const parts = [];
+        if (res.okImages) parts.push(`画像${res.okImages}枚`);
+        if (res.okVideos) parts.push(`動画${res.okVideos}本`);
+        const what = parts.join("・");
+        const pathLine = cfg.toastPath ? `\n${res.firstPath}` : "";
+        if (cfg.notify) {
+          toast(`${what}の保存を開始しました${pathLine}`, true);
+          watchDownloads(res.ids || [], what, pathLine);
         }
-        if (cfg.notify) toast(`${head}\n${res.firstPath}`, true);
       } else {
         setState(btn, "ng");
         const why = res && res.errors && res.errors[0] ? `\n${res.errors[0]}` : "";

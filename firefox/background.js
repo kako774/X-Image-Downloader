@@ -59,19 +59,21 @@ async function downloadMedia({ userId, tweetId, images, videos, text }) {
   let okImages = 0;
   let okVideos = 0;
   let firstPath = "";
+  const ids = []; // 開始したダウンロードのID(完了の確認に使う)
   const counter = { image: 0, video: 0 }; // 種類ごとの連番
 
   for (const job of jobs) {
     const index = counter[job.kind]++;
     const { path } = XID.buildPath(settings, { userId, tweetId, index, ext: job.ext, text }, now);
     try {
-      await xapi.downloads.download({
+      const id = await xapi.downloads.download({
         url: job.url,
         filename: path,
         conflictAction: settings.conflict,
         saveAs: settings.saveAs,
       });
       if (!firstPath) firstPath = path;
+      ids.push(id);
       if (job.kind === "image") okImages++;
       else okVideos++;
     } catch (e) {
@@ -82,13 +84,28 @@ async function downloadMedia({ userId, tweetId, images, videos, text }) {
   const total = jobs.length;
   const ok = okImages + okVideos;
   if (total > 0 && ok === total && errors.length === 0) await rememberTweet(tweetId);
-  return { ok, total, okImages, okVideos, errors, firstPath };
+  return { ok, total, okImages, okVideos, errors, firstPath, ids };
+}
+
+// ダウンロードの状態(complete / in_progress / interrupted)を調べる。状態は持たず、毎回ブラウザに聞く。
+async function checkDownloads(ids) {
+  const list = (Array.isArray(ids) ? ids : []).filter((n) => Number.isInteger(n)).slice(0, 50);
+  const items = [];
+  for (const id of list) {
+    const found = await xapi.downloads.search({ id });
+    for (const d of found || []) items.push({ id: d.id, state: d.state, error: d.error || "" });
+  }
+  return { items };
 }
 
 xapi.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg && msg.type === "download-images") {
     downloadMedia(msg).then(sendResponse);
     return true; // 非同期で応答
+  }
+  if (msg && msg.type === "check-downloads") {
+    checkDownloads(msg.ids).then(sendResponse, () => sendResponse({ items: null }));
+    return true;
   }
 });
 
