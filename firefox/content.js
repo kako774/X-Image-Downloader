@@ -34,6 +34,7 @@ window.addEventListener("message", (ev) => {
   videoMap.delete(d.tweetId);
   videoMap.set(d.tweetId, d.items);
   if (videoMap.size > VIDEO_MAP_MAX) videoMap.delete(videoMap.keys().next().value);
+  scheduleScan();
 });
 
 // 画像URLから「サイズ指定を除いたURL」と拡張子を取り出す
@@ -54,13 +55,34 @@ function parseImage(src) {
   }
 }
 
-function getTweetInfo(article) {
-  // 記事内で最初の time が本体ツイート(引用ツイートより前に出る)
+// 記事内で最初の time が本体ツイート(引用ツイートより前に出る)
+function getTweetRef(article) {
   const time = article.querySelector("time");
   const a = time && time.closest("a");
   const href = a && a.getAttribute("href");
   const m = href && href.match(/^\/([^/]+)\/status\/(\d+)/);
-  if (!m) return null;
+  return m ? { userId: m[1], tweetId: m[2] } : null;
+}
+
+// 画像・動画の目印(Xの画面の作りが変わっても拾えるよう、いくつか並べる)
+const MEDIA_SELECTOR = [
+  '[data-testid="tweetPhoto"]',
+  '[data-testid="videoPlayer"]',
+  '[data-testid="videoComponent"]',
+  '[data-testid="previewInterstitial"]',
+  "video",
+].join(",");
+
+function hasMedia(article) {
+  if (article.querySelector(MEDIA_SELECTOR)) return true;
+  const ref = getTweetRef(article);
+  return !!(ref && videoMap.has(ref.tweetId)); // 動画の情報が届いているツイート
+}
+
+function getTweetInfo(article) {
+  const ref = getTweetRef(article);
+  if (!ref) return null;
+  const m = [null, ref.userId, ref.tweetId];
 
   const seen = new Set();
   const images = [];
@@ -72,7 +94,7 @@ function getTweetInfo(article) {
     }
   });
   const textEl = article.querySelector('[data-testid="tweetText"]');
-  const hasVideo = !!article.querySelector('video, [data-testid="videoPlayer"]');
+  const hasVideo = !!article.querySelector('video, [data-testid="videoPlayer"], [data-testid="videoComponent"]') || videoMap.has(m[2]);
   return { userId: m[1], tweetId: m[2], images, hasVideo, text: textEl ? textEl.innerText : "" };
 }
 
@@ -126,7 +148,7 @@ async function loadState() {
 
 function addButton(article) {
   if (article.getAttribute(DONE_ATTR)) return;
-  if (!article.querySelector('[data-testid="tweetPhoto"], [data-testid="videoPlayer"], video')) return;
+  if (!hasMedia(article)) return;
 
   const groups = article.querySelectorAll('[role="group"]');
   const bar = groups[groups.length - 1];
@@ -202,11 +224,12 @@ function scan() {
   document.querySelectorAll('article[data-testid="tweet"]').forEach(addButton);
 }
 
-let timer = null;
-new MutationObserver(() => {
-  clearTimeout(timer);
-  timer = setTimeout(scan, 200);
-}).observe(document.body, { childList: true, subtree: true });
+let scanTimer = null;
+function scheduleScan() {
+  clearTimeout(scanTimer);
+  scanTimer = setTimeout(scan, 200);
+}
+new MutationObserver(scheduleScan).observe(document.body, { childList: true, subtree: true });
 
 try {
   xapi.storage.onChanged.addListener(loadState);

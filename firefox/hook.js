@@ -6,7 +6,7 @@
   if (window.__xidHooked) return;
   window.__xidHooked = true;
 
-  const API_RE = /\/i\/api\/(graphql|1\.1|2)\//;
+  const API_RE = /(\/i\/api\/|\/graphql\/|\/1\.1\/|\/2\/timeline)/;
   const sent = new Set(); // 同じ内容を何度も送らない
 
   // JSONの中から「動画・GIFを含むツイート」を探す
