@@ -176,6 +176,30 @@ async function loadState() {
   }
 }
 
+// 保存ボタンの大きさと縦の位置を、Xの他のアイコン(返信など)に合わせる。
+// タイムラインと個別ページ(ツイートを開いた画面)で、Xのアイコンの大きさや行の高さが違うため。
+function alignWithBar(btn, bar) {
+  if (!btn.isConnected) return;
+  const mine = btn.querySelector("svg");
+  const ref =
+    bar.querySelector('[data-testid="reply"] svg') ||
+    [...bar.querySelectorAll("svg")].find((s) => !btn.contains(s));
+  if (!mine || !ref) return;
+  const r = ref.getBoundingClientRect();
+  if (r.width < 8 || r.height < 8) return; // まだ画面に配置されていない
+  mine.setAttribute("width", String(r.width));
+  mine.setAttribute("height", String(r.height));
+  btn.style.transform = "";
+  const m = mine.getBoundingClientRect();
+  const dy = r.top + r.height / 2 - (m.top + m.height / 2);
+  if (Math.abs(dy) >= 0.5) btn.style.transform = `translateY(${dy}px)`;
+}
+
+function scheduleAlign(btn, bar) {
+  // 画面の配置が落ち着くまで、何回か合わせ直す
+  [0, 250, 1000, 3000].forEach((t) => setTimeout(() => alignWithBar(btn, bar), t));
+}
+
 function addButton(article) {
   if (article.getAttribute(DONE_ATTR)) return;
   if (!hasMedia(article)) return;
@@ -247,6 +271,7 @@ function addButton(article) {
   });
   bar.appendChild(btn);
   refreshMarks();
+  scheduleAlign(btn, bar);
 }
 
 function scan() {
