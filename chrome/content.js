@@ -12,10 +12,17 @@ function makeIcon() {
   svg.setAttribute("width", "18.75");
   svg.setAttribute("height", "18.75");
   svg.setAttribute("aria-hidden", "true");
-  const path = document.createElementNS(NS, "path");
-  path.setAttribute("fill", "currentColor");
-  path.setAttribute("d", "M12 16.5l-5-5 1.4-1.4 2.6 2.6V3h2v9.7l2.6-2.6 1.4 1.4-5 5zM5 19h14v2H5v-2z");
-  svg.appendChild(path);
+  // 下向きの矢印と、受け皿(線の太さはXの共有アイコンと同じ2、大きさも同じ3〜21)
+  const parts = [
+    "M11 3h2v8.6l3.3-3.3 1.4 1.4L12 15.4 6.3 9.7l1.4-1.4 3.3 3.3z",
+    "M3 14.5V18a3 3 0 0 0 3 3h12a3 3 0 0 0 3-3v-3.5h-2V18a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-3.5z",
+  ];
+  for (const d of parts) {
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("fill", "currentColor");
+    path.setAttribute("d", d);
+    svg.appendChild(path);
+  }
   return svg;
 }
 
@@ -189,6 +196,9 @@ function alignWithBar(btn, bar) {
   if (r.width < 8 || r.height < 8) return; // まだ画面に配置されていない
   mine.setAttribute("width", String(r.width));
   mine.setAttribute("height", String(r.height));
+  // 色もXのアイコンに合わせる(テーマ: ライト/ダークなどで灰色が違うため)
+  const col = getComputedStyle(ref).color;
+  if (col && !/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/.test(col)) btn.style.setProperty("--xid-color", col);
   btn.style.transform = "";
   const m = mine.getBoundingClientRect();
   const dy = r.top + r.height / 2 - (m.top + m.height / 2);

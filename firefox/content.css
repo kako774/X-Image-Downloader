@@ -11,7 +11,7 @@
   border: none;
   border-radius: 50%;
   background: transparent;
-  color: rgb(113, 118, 123);
+  color: var(--xid-color, rgb(113, 118, 123));
   cursor: pointer;
   transition: background-color 0.15s, color 0.15s;
 }
