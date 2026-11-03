@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "X Image Downloader",
-  "version": "1.4.3",
+  "version": "1.4.4",
   "description": "X(Twitter)の画像・動画を原寸で保存します。保存先のフォルダ名・ファイル名はテンプレートで自由に設定できます。",
   "permissions": [
     "downloads",
@@ -60,6 +60,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "x-image-downloader@kako774",
+      "update_url": "https://raw.githubusercontent.com/kako774/X-Image-Downloader/main/updates.json",
       "strict_min_version": "140.0",
       "data_collection_permissions": {
         "required": [

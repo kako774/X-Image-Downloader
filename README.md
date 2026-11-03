@@ -108,10 +108,30 @@ Windowsで使えない文字(`\ / : * ? " < > |`)は `_` に置き換わりま�
 
 画像付きツイートに保存ボタンが出ないときは、`about:addons` の拡張機能の「権限」で x.com へのアクセスがオンになっているか確認してください。
 
+### Firefoxの自動更新(自己配布)
+
+`firefox/manifest.json` の `update_url` は、このリポジトリの `updates.json` を指しています。署名済みの `.xpi` を配るときは、次の手順で自動更新できます。
+
+1. `manifest.json` のバージョンを上げて、`firefox` フォルダの中身をzipにする
+2. [addons.mozilla.org](https://addons.mozilla.org/developers/) に「非公開(自己配布)」で出して、署名済みの `.xpi` を受け取る
+3. GitHubのReleasesに、タグ `v<バージョン>` で `.xpi` を `x-image-downloader-<バージョン>.xpi` の名前で載せる
+4. `updates.json` の `updates` に、次の1件を足して push する(`update_hash` は `sha256:` から始まる `.xpi` のハッシュ。任意だが付けると安全)
+
+```json
+{
+  "version": "1.4.4",
+  "update_link": "https://github.com/kako774/X-Image-Downloader/releases/download/v1.4.4/x-image-downloader-1.4.4.xpi",
+  "update_hash": "sha256:..."
+}
+```
+
+Firefoxは定期的に `updates.json` を見て、新しい版があれば自動で入れ替えます。AMOで公開する場合は、`update_url` を消してください。
+
 ## フォルダ構成
 
 - `chrome/` … Chrome / Edge 用(Manifest V3、service worker)
 - `firefox/` … Firefox 用(Manifest V3、event page)
+- `updates.json` … Firefoxの自動更新用の情報
 
 2つのフォルダのJavaScript・CSS・HTML・アイコンは同じ内容で、違うのは `manifest.json` だけです。
 コードを直すときは、両方のフォルダに同じ変更を入れてください。
