@@ -1,7 +1,13 @@
 {
   "addons": {
     "x-image-downloader@kako774": {
-      "updates": []
+      "updates": [
+        {
+          "version": "1.4.4",
+          "update_link": "https://github.com/kako774/X-Image-Downloader/releases/download/v1.4.4/x-image-downloader-1.4.4.xpi",
+          "update_hash": "sha256:edf27108fffdd2c13b86eed6e379cb73f5dc62ed1c118725444e3a357edd86d1"
+        }
+      ]
     }
   }
 }
