@@ -96,25 +96,28 @@ Windowsで使えない文字(`\ / : * ? " < > |`)は `_` に置き換わりま�
 
 ### Firefox(140以降)
 
-お試し(Firefoxを閉じると消えます):
+署名済みのファイルを配っています。自動更新にも対応しています。
+
+1. [Releases](https://github.com/kako774/X-Image-Downloader/releases/latest) から、最新の `x-image-downloader-<バージョン>.xpi` をダウンロードする
+2. ダウンロードした `.xpi` を Firefox の画面にドラッグする(または、ファイルを Firefox で開く)
+3. 確認が出たら「追加」を押す
+
+新しい版が出ると、Firefox が自動で入れ替えます(Firefox が更新を確認するのは、1日に1回ほどです)。
+
+ソースコードから試したいとき(Firefoxを閉じると消えます):
 
 1. `about:debugging#/runtime/this-firefox` を開く
 2. 「一時的なアドオンを読み込む」で `firefox` フォルダの `manifest.json` を選ぶ
 
-ずっと使う場合は、署名が必要です。
-
-- [addons.mozilla.org](https://addons.mozilla.org/developers/) に「非公開(自己配布)」で出して署名してもらう、または
-- Firefox Developer Edition / Nightly で `xpinstall.signatures.required` を `false` にする
-
 画像付きツイートに保存ボタンが出ないときは、`about:addons` の拡張機能の「権限」で x.com へのアクセスがオンになっているか確認してください。
 
-### Firefoxの自動更新(自己配布)
+### 新しい版を出すとき(Firefoxの自動更新)
 
-`firefox/manifest.json` の `update_url` は、このリポジトリの `updates.json` を指しています。署名済みの `.xpi` を配るときは、次の手順で自動更新できます。
+`firefox/manifest.json` の `update_url` は、このリポジトリの `updates.json` を指しています。新しい版を出すときは、次の手順で自動更新に載せます。
 
 1. `manifest.json` のバージョンを上げて、`firefox` フォルダの中身をzipにする
 2. [addons.mozilla.org](https://addons.mozilla.org/developers/) に「非公開(自己配布)」で出して、署名済みの `.xpi` を受け取る
-3. GitHubのReleasesに、タグ `v<バージョン>` で `.xpi` を `x-image-downloader-<バージョン>.xpi` の名前で載せる
+3. GitHubのReleasesに、タグ `v<バージョン>` で `.xpi` を `x-image-downloader-<バージョン>.xpi` の名前で載せる(AMOからダウンロードしたファイルは、名前を変えても署名は壊れません)
 4. `updates.json` の `updates` に、次の1件を足して push する(`update_hash` は `sha256:` から始まる `.xpi` のハッシュ。任意だが付けると安全)
 
 ```json
